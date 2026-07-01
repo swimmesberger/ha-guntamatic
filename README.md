@@ -39,9 +39,13 @@ Manual install: copy `custom_components/guntamatic_rw/` into your HA `config/cus
 ## Configuration
 
 - **Host** — IP or hostname of the heater.
-- **API key** — the device key with authorization level **W1** or higher (required
-  for both data access *and* commands). Get it from your Guntamatic BCE /
-  registration. Without a sufficient level the endpoints return no data and setup fails.
+- **API key** *(optional)* — a device key with authorization level **W1** or higher.
+  - **With key:** all DAQ channels (`/ext/…`) **and** control (boiler release, programs, hot-water reload).
+  - **Without key:** a reduced, read-only channel set from the keyless root endpoints — **no control**.
+
+Either way you also get the **`par.cgi` diagnostic sensors** (operating mode, hybrid mode,
+COP limit, electricity/pellet prices, heat-pump buffer setpoint) — handy on pellet + heat-pump
+hybrids, where that configuration is otherwise invisible.
 
 Options (Settings → the integration → **Configure**):
 

@@ -53,7 +53,7 @@ class GuntamaticConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             host = user_input[CONF_HOST].strip()
-            api_key = user_input[CONF_API_KEY].strip()
+            api_key = user_input.get(CONF_API_KEY, "").strip()
             error = await self._async_validate(host, api_key)
             if error is None:
                 # Reconcile by host across both the manual and DHCP flows, so the
@@ -72,7 +72,7 @@ class GuntamaticConfigFlow(ConfigFlow, domain=DOMAIN):
         schema = vol.Schema(
             {
                 vol.Required(CONF_HOST, default=self._host or ""): str,
-                vol.Required(CONF_API_KEY): str,
+                vol.Optional(CONF_API_KEY, default=""): str,
             }
         )
         return self.async_show_form(
@@ -128,7 +128,7 @@ class GuntamaticConfigFlow(ConfigFlow, domain=DOMAIN):
             await client.async_get_descriptions()
             await client.async_get_data()
         except GuntamaticAuthError:
-            return "invalid_auth"
+            return "invalid_auth" if api_key else "key_required"
         except GuntamaticError:
             return "cannot_connect"
         return None

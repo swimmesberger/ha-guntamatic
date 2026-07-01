@@ -18,6 +18,8 @@ from .api import (
     GuntamaticAuthError,
     GuntamaticClient,
     GuntamaticError,
+    Parameter,
+    infer_keyless_type,
 )
 from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
 
@@ -35,7 +37,7 @@ class ChannelData:
 
 
 class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelData]]):
-    """Polls the device and caches the (immutable) channel descriptions."""
+    """Polls the device: DAQ channels + par.cgi parameters."""
 
     config_entry: GuntamaticConfigEntry
 
@@ -56,9 +58,15 @@ class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelDat
         )
         self.client = client
         self.descriptions: list[DaqDescription] = []
+        self.parameters: dict[str, Parameter] = {}
+
+    @property
+    def has_key(self) -> bool:
+        """Whether an API key is configured (unlocks the full DAQ set + control)."""
+        return self.client.has_key
 
     async def _async_update_data(self) -> dict[int, ChannelData]:
-        """Fetch data, (re)loading descriptions when needed."""
+        """Fetch DAQ data (+ par.cgi), (re)loading descriptions when needed."""
         try:
             if not self.descriptions:
                 self.descriptions = await self.client.async_get_descriptions()
@@ -66,10 +74,8 @@ class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelDat
             values = await self.client.async_get_data()
 
             # Descriptions are cached; if the array length no longer matches the
-            # data (e.g. authorization level or firmware changed), refetch BOTH so
-            # they come from the same snapshot. Values and descriptions are only
-            # positionally aligned within one snapshot, so a partial refetch could
-            # silently map values to the wrong channel.
+            # data, refetch BOTH so they come from the same snapshot (values and
+            # descriptions are only positionally aligned within one snapshot).
             if len(values) != len(self.descriptions):
                 _LOGGER.debug(
                     "DAQ length mismatch (%s values vs %s descriptions); refreshing",
@@ -84,7 +90,12 @@ class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelDat
                         f"({len(values)} values vs {len(self.descriptions)} descriptions)"
                     )
 
-            return {
+            # Keyless descriptions carry no type; infer it once from unit/value.
+            for desc, value in zip(self.descriptions, values):
+                if desc.type == "":
+                    desc.type = infer_keyless_type(value, desc.unit)
+
+            channels = {
                 desc.id: ChannelData(description=desc, value=value)
                 for desc, value in zip(self.descriptions, values)
             }
@@ -93,7 +104,16 @@ class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelDat
         except GuntamaticError as err:
             raise UpdateFailed(str(err)) from err
 
+        # par.cgi is keyless and rarely changes; failure here must not break the
+        # DAQ update, so keep the previous parameters on error.
+        try:
+            self.parameters = await self.client.async_get_parameters()
+        except GuntamaticError as err:
+            _LOGGER.debug("par.cgi fetch failed: %s", err)
+
+        return channels
+
     async def async_set_parameter(self, syn: str, value: int) -> None:
-        """Write a parameter and refresh so sensors reflect the change quickly."""
+        """Write a parameter and refresh so entities reflect the change quickly."""
         await self.client.async_set_parameter(syn, value)
         await self.async_request_refresh()

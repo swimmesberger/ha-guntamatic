@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Final
 
 from homeassistant.const import Platform
@@ -90,3 +91,32 @@ HEATING_PROGRAM_STATE_MAP: Final[dict[str, str]] = {
     "HEIZEN": "heat",
     "ABSENKEN": "setback",
 }
+
+# DAQ units that always denote a numeric channel (used for keyless type inference).
+NUMERIC_UNITS: Final = ("°C", "%", "h", "d", "m3")
+
+# Channel names in the keyless daqdesc that are placeholders and must be skipped.
+RESERVED_CHANNEL_NAMES: Final = ("reserved", "")
+
+
+@dataclass(frozen=True)
+class ParSensorDef:
+    """A curated par.cgi parameter exposed as a diagnostic sensor."""
+
+    par_id: str
+    translation_key: str
+    icon: str | None = None
+
+
+# Diagnostic sensors sourced from par.cgi (keyless). Focused on the hybrid/heat-pump
+# configuration, which is otherwise invisible in the DAQ data.
+PAR_SENSORS: Final[tuple[ParSensorDef, ...]] = (
+    ParSensorDef("PR004", "operating_mode", "mdi:heat-pump"),
+    ParSensorDef("WP015", "hybrid_mode", "mdi:scale-balance"),
+    ParSensorDef("WP001", "dhw_source_summer", "mdi:water-boiler"),
+    ParSensorDef("AE042", "cop_limit", "mdi:speedometer"),
+    ParSensorDef("WP006", "pellet_price", "mdi:currency-eur"),
+    ParSensorDef("WP007", "power_price_day", "mdi:transmission-tower"),
+    ParSensorDef("WP008", "power_price_night", "mdi:transmission-tower-off"),
+    ParSensorDef("FK005a", "buffer_setpoint_hp", "mdi:thermometer-water"),
+)

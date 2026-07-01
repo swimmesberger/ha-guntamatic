@@ -4,10 +4,10 @@
     "step": {
       "user": {
         "title": "Guntamatic",
-        "description": "Gib die Adresse und den API-Schlüssel deiner Guntamatic-Heizung ein. Der Schlüssel muss mindestens die Berechtigungsstufe W1 haben, die zum Lesen der Daten und zum Senden von Befehlen erforderlich ist.",
+        "description": "Gib die Adresse deiner Guntamatic-Heizung ein. Der API-Schlüssel ist optional: mit Schlüssel bekommst du alle Kanäle und die Steuerung; ohne Schlüssel einen reduzierten Nur-Lese-Satz plus die par.cgi-Diagnose. Ein Schlüssel benötigt mindestens die Berechtigungsstufe W1.",
         "data": {
           "host": "Host",
-          "api_key": "API-Schlüssel"
+          "api_key": "API-Schlüssel (optional)"
         }
       },
       "reauth_confirm": {
@@ -20,7 +20,8 @@
     },
     "error": {
       "cannot_connect": "Verbindung fehlgeschlagen",
-      "invalid_auth": "Ungültiger API-Schlüssel oder unzureichende Berechtigungsstufe"
+      "invalid_auth": "Ungültiger API-Schlüssel oder unzureichende Berechtigungsstufe",
+      "key_required": "Dieses Gerät liefert ohne API-Schlüssel keine Daten — bitte einen eingeben"
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert",
@@ -46,6 +47,16 @@
     }
   },
   "entity": {
+    "sensor": {
+      "operating_mode": { "name": "Betriebsart" },
+      "hybrid_mode": { "name": "Hybridmodus" },
+      "dhw_source_summer": { "name": "Warmwasser-Quelle (Sommer)" },
+      "cop_limit": { "name": "COP-Grenze" },
+      "pellet_price": { "name": "Pelletspreis" },
+      "power_price_day": { "name": "Strompreis (Tag)" },
+      "power_price_night": { "name": "Strompreis (Nacht)" },
+      "buffer_setpoint_hp": { "name": "Puffer-Sollwert (Wärmepumpe)" }
+    },
     "select": {
       "boiler_mode": {
         "name": "Kesselfreigabe",

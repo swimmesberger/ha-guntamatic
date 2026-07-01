@@ -4,10 +4,10 @@
     "step": {
       "user": {
         "title": "Guntamatic",
-        "description": "Enter the address and API key of your Guntamatic heater. The key must have authorization level W1 or higher, which is required to read data and to send commands.",
+        "description": "Enter the address of your Guntamatic heater. The API key is optional: with a key you get all channels and control; without a key you get a reduced read-only channel set plus the par.cgi diagnostics. A key needs authorization level W1 or higher.",
         "data": {
           "host": "Host",
-          "api_key": "API key"
+          "api_key": "API key (optional)"
         }
       },
       "reauth_confirm": {
@@ -20,7 +20,8 @@
     },
     "error": {
       "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid API key or insufficient authorization level"
+      "invalid_auth": "Invalid API key or insufficient authorization level",
+      "key_required": "This device returns no data without an API key — please enter one"
     },
     "abort": {
       "already_configured": "Device is already configured",
@@ -46,6 +47,16 @@
     }
   },
   "entity": {
+    "sensor": {
+      "operating_mode": { "name": "Operating mode" },
+      "hybrid_mode": { "name": "Hybrid mode" },
+      "dhw_source_summer": { "name": "DHW source (summer)" },
+      "cop_limit": { "name": "COP limit" },
+      "pellet_price": { "name": "Pellet price" },
+      "power_price_day": { "name": "Electricity price (day)" },
+      "power_price_night": { "name": "Electricity price (night)" },
+      "buffer_setpoint_hp": { "name": "Buffer setpoint (heat pump)" }
+    },
     "select": {
       "boiler_mode": {
         "name": "Boiler release",

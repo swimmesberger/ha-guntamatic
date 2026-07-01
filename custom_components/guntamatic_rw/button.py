@@ -21,6 +21,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up hot-water reload buttons (one per configured circuit)."""
     coordinator = entry.runtime_data
+    if not coordinator.has_key:
+        # Control requires an API key (parset.cgi is key-gated).
+        return
     circuits = int(entry.options.get(CONF_HOT_WATER_CIRCUITS, DEFAULT_HOT_WATER_CIRCUITS))
 
     entities: list[GuntamaticButton] = []

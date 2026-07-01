@@ -44,6 +44,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up the control selects."""
     coordinator = entry.runtime_data
+    if not coordinator.has_key:
+        # Control requires an API key (parset.cgi is key-gated).
+        return
     options = entry.options
 
     boiler_syn = options.get(CONF_BOILER_SYNONYM, DEFAULT_BOILER_SYNONYM)

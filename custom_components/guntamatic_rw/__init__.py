@@ -14,7 +14,9 @@ from .coordinator import GuntamaticConfigEntry, GuntamaticDataUpdateCoordinator
 async def async_setup_entry(hass: HomeAssistant, entry: GuntamaticConfigEntry) -> bool:
     """Set up Guntamatic from a config entry."""
     session = async_get_clientsession(hass)
-    client = GuntamaticClient(session, entry.data[CONF_HOST], entry.data[CONF_API_KEY])
+    client = GuntamaticClient(
+        session, entry.data[CONF_HOST], entry.data.get(CONF_API_KEY)
+    )
 
     coordinator = GuntamaticDataUpdateCoordinator(hass, entry, client)
     await coordinator.async_config_entry_first_refresh()

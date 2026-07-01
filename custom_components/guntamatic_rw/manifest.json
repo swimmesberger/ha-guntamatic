@@ -1,0 +1,16 @@
+{
+  "domain": "guntamatic_rw",
+  "name": "Guntamatic (read/write)",
+  "codeowners": ["@swimmesberger"],
+  "config_flow": true,
+  "dhcp": [
+    { "hostname": "kessel*" },
+    { "macaddress": "0024BD*" }
+  ],
+  "documentation": "https://github.com/swimmesberger/ha-guntamatic",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/swimmesberger/ha-guntamatic/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}

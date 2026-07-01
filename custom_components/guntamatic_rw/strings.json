@@ -1,0 +1,88 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Guntamatic",
+        "description": "Enter the address and API key of your Guntamatic heater. The key must have authorization level W1 or higher, which is required to read data and to send commands.",
+        "data": {
+          "host": "Host",
+          "api_key": "API key"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Guntamatic",
+        "description": "The API key for {host} is no longer valid. Enter a new key.",
+        "data": {
+          "api_key": "API key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid API key or insufficient authorization level"
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Guntamatic options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "heating_circuits": "Number of heating circuits",
+          "hot_water_circuits": "Number of hot-water circuits",
+          "boiler_synonym": "Boiler product family"
+        },
+        "data_description": {
+          "heating_circuits": "Creates a program select for each heating circuit (HK0..HK8).",
+          "hot_water_circuits": "Creates hot-water reload buttons for each circuit (0..2).",
+          "boiler_synonym": "Selects the correct boiler-release command for your model."
+        }
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "boiler_mode": {
+        "name": "Boiler release",
+        "state": {
+          "auto": "Auto",
+          "off": "Off",
+          "on": "On (continuous)"
+        }
+      },
+      "control_program": {
+        "name": "Control program",
+        "state": {
+          "off": "Off",
+          "normal": "Normal",
+          "hot_water": "Hot water",
+          "heat": "Heating",
+          "setback": "Setback",
+          "manual": "Manual"
+        }
+      },
+      "heating_program": {
+        "name": "Heating circuit {circuit} program",
+        "state": {
+          "off": "Off",
+          "normal": "Normal (timer)",
+          "heat": "Heating",
+          "setback": "Setback"
+        }
+      }
+    },
+    "button": {
+      "hot_water_reload": {
+        "name": "Hot water {circuit} reload"
+      },
+      "additional_hot_water_reload": {
+        "name": "Additional hot water {circuit} reload"
+      }
+    }
+  }
+}

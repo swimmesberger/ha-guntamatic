@@ -1,0 +1,88 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Guntamatic",
+        "description": "Gib die Adresse und den API-Schlüssel deiner Guntamatic-Heizung ein. Der Schlüssel muss mindestens die Berechtigungsstufe W1 haben, die zum Lesen der Daten und zum Senden von Befehlen erforderlich ist.",
+        "data": {
+          "host": "Host",
+          "api_key": "API-Schlüssel"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Guntamatic",
+        "description": "Der API-Schlüssel für {host} ist nicht mehr gültig. Gib einen neuen Schlüssel ein.",
+        "data": {
+          "api_key": "API-Schlüssel"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen",
+      "invalid_auth": "Ungültiger API-Schlüssel oder unzureichende Berechtigungsstufe"
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert",
+      "reauth_successful": "Erneute Authentifizierung erfolgreich"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Guntamatic-Optionen",
+        "data": {
+          "scan_interval": "Abfrageintervall (Sekunden)",
+          "heating_circuits": "Anzahl der Heizkreise",
+          "hot_water_circuits": "Anzahl der Warmwasserkreise",
+          "boiler_synonym": "Kessel-Produktfamilie"
+        },
+        "data_description": {
+          "heating_circuits": "Erstellt eine Programm-Auswahl für jeden Heizkreis (HK0..HK8).",
+          "hot_water_circuits": "Erstellt Warmwasser-Nachladen-Tasten für jeden Kreis (0..2).",
+          "boiler_synonym": "Wählt den passenden Kesselfreigabe-Befehl für dein Modell."
+        }
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "boiler_mode": {
+        "name": "Kesselfreigabe",
+        "state": {
+          "auto": "Auto",
+          "off": "Aus",
+          "on": "Ein (Dauer)"
+        }
+      },
+      "control_program": {
+        "name": "Reglerprogramm",
+        "state": {
+          "off": "Aus",
+          "normal": "Normal",
+          "hot_water": "Warmwasser",
+          "heat": "Heizen",
+          "setback": "Absenken",
+          "manual": "Handbetrieb"
+        }
+      },
+      "heating_program": {
+        "name": "Heizkreis {circuit} Programm",
+        "state": {
+          "off": "Aus",
+          "normal": "Normal (Uhrenprogramm)",
+          "heat": "Heizen",
+          "setback": "Absenken"
+        }
+      }
+    },
+    "button": {
+      "hot_water_reload": {
+        "name": "Warmwasser {circuit} nachladen"
+      },
+      "additional_hot_water_reload": {
+        "name": "Zusatz-Warmwasser {circuit} nachladen"
+      }
+    }
+  }
+}

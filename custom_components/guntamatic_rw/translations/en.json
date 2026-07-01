@@ -39,9 +39,9 @@
           "boiler_synonym": "Boiler product family"
         },
         "data_description": {
-          "heating_circuits": "Creates a program select for each heating circuit (HK0..HK8).",
-          "hot_water_circuits": "Creates hot-water reload buttons for each circuit (0..2).",
-          "boiler_synonym": "Selects the correct boiler-release command for your model."
+          "heating_circuits": "How many heating-circuit program selects to create (HK0, HK1, …). Affects only the control entities — sensors always show every circuit the device reports.",
+          "hot_water_circuits": "How many hot-water reload buttons to create. Affects only the control entities.",
+          "boiler_synonym": "Selects the correct boiler-release command for your model (Therm/Biostar = K0010)."
         }
       }
     }

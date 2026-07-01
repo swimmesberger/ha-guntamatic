@@ -39,9 +39,9 @@
           "boiler_synonym": "Kessel-Produktfamilie"
         },
         "data_description": {
-          "heating_circuits": "Erstellt eine Programm-Auswahl für jeden Heizkreis (HK0..HK8).",
-          "hot_water_circuits": "Erstellt Warmwasser-Nachladen-Tasten für jeden Kreis (0..2).",
-          "boiler_synonym": "Wählt den passenden Kesselfreigabe-Befehl für dein Modell."
+          "heating_circuits": "Wie viele Heizkreis-Programm-Selects angelegt werden (HK0, HK1, …). Betrifft nur die Steuer-Entities — Sensoren zeigen immer alle vom Gerät gemeldeten Kreise.",
+          "hot_water_circuits": "Wie viele Warmwasser-Nachladen-Tasten angelegt werden. Betrifft nur die Steuer-Entities.",
+          "boiler_synonym": "Wählt den passenden Kesselfreigabe-Befehl für dein Modell (Therm/Biostar = K0010)."
         }
       }
     }

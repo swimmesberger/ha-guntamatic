@@ -1,10 +1,9 @@
 """Select platform: control writes via parset.cgi.
 
-For the control program and per-circuit heating program the device exposes the
-current value as a DAQ string channel ("Programm" / "Progamm HKx"), so those
-selects reflect the REAL device state. The boiler-release select has no such
-tri-state channel (only a boolean), so it stays optimistic: the shown option is
-the last command issued from Home Assistant (restored across restarts).
+The current option is read back from the authoritative par.cgi parameter value
+(the same id used to write): boiler release (`K0010`/`PK002`), control program
+(`PR001`), and per-circuit heating program (`HK{n}01`). This is the configured
+setpoint (not the momentary DAQ state), which is what the select actually sets.
 """
 
 from __future__ import annotations
@@ -21,14 +20,10 @@ from .const import (
     CONF_BOILER_SYNONYM,
     CONF_HEATING_CIRCUITS,
     CONTROL_PROGRAM_OPTIONS,
-    CONTROL_PROGRAM_STATE_MAP,
-    CONTROL_PROGRAM_STATE_NAMES,
     CONTROL_PROGRAM_SYNONYM,
     DEFAULT_BOILER_SYNONYM,
     DEFAULT_HEATING_CIRCUITS,
     HEATING_PROGRAM_OPTIONS,
-    HEATING_PROGRAM_STATE_MAP,
-    HEATING_PROGRAM_STATE_NAMES,
 )
 from .coordinator import GuntamaticConfigEntry, GuntamaticDataUpdateCoordinator
 from .entity import GuntamaticEntity
@@ -52,16 +47,6 @@ async def async_setup_entry(
     boiler_syn = options.get(CONF_BOILER_SYNONYM, DEFAULT_BOILER_SYNONYM)
     heating_circuits = int(options.get(CONF_HEATING_CIRCUITS, DEFAULT_HEATING_CIRCUITS))
 
-    # Resolve the "current state" channel ids by (case-insensitive) name.
-    by_name = {desc.name.strip().casefold(): desc.id for desc in coordinator.descriptions}
-
-    def resolve(*names: str) -> int | None:
-        for name in names:
-            channel_id = by_name.get(name.strip().casefold())
-            if channel_id is not None:
-                return channel_id
-        return None
-
     entities: list[GuntamaticSelect] = [
         GuntamaticSelect(
             coordinator,
@@ -69,6 +54,7 @@ async def async_setup_entry(
             translation_key="boiler_mode",
             syn=boiler_syn,
             options_map=BOILER_MODE_OPTIONS,
+            par_id=boiler_syn,
         ),
         GuntamaticSelect(
             coordinator,
@@ -76,8 +62,7 @@ async def async_setup_entry(
             translation_key="control_program",
             syn=CONTROL_PROGRAM_SYNONYM,
             options_map=CONTROL_PROGRAM_OPTIONS,
-            state_channel_id=resolve(*CONTROL_PROGRAM_STATE_NAMES),
-            state_value_map=CONTROL_PROGRAM_STATE_MAP,
+            par_id=CONTROL_PROGRAM_SYNONYM,
         ),
     ]
 
@@ -90,10 +75,7 @@ async def async_setup_entry(
                 syn=f"HK{circuit}01",
                 options_map=HEATING_PROGRAM_OPTIONS,
                 placeholders={"circuit": str(circuit)},
-                state_channel_id=resolve(
-                    *(name.format(n=circuit) for name in HEATING_PROGRAM_STATE_NAMES)
-                ),
-                state_value_map=HEATING_PROGRAM_STATE_MAP,
+                par_id=f"HK{circuit}01",
             )
         )
 
@@ -101,7 +83,7 @@ async def async_setup_entry(
 
 
 class GuntamaticSelect(GuntamaticEntity, RestoreEntity, SelectEntity):
-    """A select that writes a parameter, reflecting real state when available."""
+    """A select that writes a parameter and reads its state back from par.cgi."""
 
     _attr_current_option: str | None = None
 
@@ -114,15 +96,15 @@ class GuntamaticSelect(GuntamaticEntity, RestoreEntity, SelectEntity):
         syn: str,
         options_map: Mapping[str, int],
         placeholders: Mapping[str, str] | None = None,
-        state_channel_id: int | None = None,
-        state_value_map: Mapping[str, str] | None = None,
+        par_id: str | None = None,
     ) -> None:
         """Initialize the select entity."""
         super().__init__(coordinator)
         self._syn = syn
         self._options_map = dict(options_map)
-        self._state_channel_id = state_channel_id
-        self._state_value_map = dict(state_value_map) if state_value_map else {}
+        # Reverse map (device value -> option key) for reading state back.
+        self._value_to_option = {value: key for key, value in options_map.items()}
+        self._par_id = par_id
         self._attr_translation_key = translation_key
         self._attr_options = list(options_map)
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{key}"
@@ -130,7 +112,7 @@ class GuntamaticSelect(GuntamaticEntity, RestoreEntity, SelectEntity):
             self._attr_translation_placeholders = dict(placeholders)
 
     async def async_added_to_hass(self) -> None:
-        """Restore the last selected option (used as optimistic fallback)."""
+        """Restore the last selected option (fallback when par.cgi has no value)."""
         await super().async_added_to_hass()
         if (last_state := await self.async_get_last_state()) is not None:
             if last_state.state in self._options_map:
@@ -138,13 +120,16 @@ class GuntamaticSelect(GuntamaticEntity, RestoreEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        """Return the current option, preferring real device state."""
-        if self._state_channel_id is not None:
-            channel = self.coordinator.data.get(self._state_channel_id)
-            if channel is not None and channel.value is not None:
-                mapped = self._state_value_map.get(str(channel.value).strip().upper())
-                if mapped in self._options_map:
-                    return mapped
+        """Return the current option, preferring the par.cgi configured value."""
+        if self._par_id is not None:
+            param = self.coordinator.parameters.get(self._par_id)
+            if param is not None:
+                try:
+                    option = self._value_to_option.get(int(param.current))
+                except (TypeError, ValueError):
+                    option = None
+                if option in self._options_map:
+                    return option
         # Fall back to the last command issued (optimistic / restored).
         return self._attr_current_option
 

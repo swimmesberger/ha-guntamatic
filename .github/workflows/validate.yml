@@ -23,3 +23,6 @@ jobs:
       - uses: hacs/action@main
         with:
           category: integration
+          # 'brands' inclusion is only required for the default HACS store; this
+          # is installed as a custom repository, so skip that check.
+          ignore: brands

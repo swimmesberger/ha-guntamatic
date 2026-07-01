@@ -26,8 +26,11 @@ PARALLEL_UPDATES = 0
 _UNIT_MAP: dict[str, tuple[str, SensorDeviceClass | None, SensorStateClass]] = {
     "°C": (UnitOfTemperature.CELSIUS, SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
     "%": (PERCENTAGE, None, SensorStateClass.MEASUREMENT),
-    "h": (UnitOfTime.HOURS, SensorDeviceClass.DURATION, SensorStateClass.TOTAL_INCREASING),
-    "d": (UnitOfTime.DAYS, SensorDeviceClass.DURATION, SensorStateClass.TOTAL_INCREASING),
+    # Duration channels can count up (operating time) or DOWN (service/ash
+    # countdown), so MEASUREMENT is the only safe state class.
+    "h": (UnitOfTime.HOURS, SensorDeviceClass.DURATION, SensorStateClass.MEASUREMENT),
+    "d": (UnitOfTime.DAYS, SensorDeviceClass.DURATION, SensorStateClass.MEASUREMENT),
+    # Fuel counter is a genuine cumulative total.
     "m3": (UnitOfVolume.CUBIC_METERS, SensorDeviceClass.VOLUME, SensorStateClass.TOTAL_INCREASING),
 }
 

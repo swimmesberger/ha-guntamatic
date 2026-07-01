@@ -63,10 +63,13 @@ Options (Settings → the integration → **Configure**):
 
 ### A note on control state
 
-Guntamatic's web interface does not expose the *current* value of these control
-parameters as model-independent DAQ channels. The selects are therefore
-**optimistic**: the shown option reflects the last command issued from Home
-Assistant (restored across restarts), not a value read back from the device.
+- **Control program** and **per-circuit heating program** selects reflect the
+  **real device state**, read from the `Programm` / `Progamm HKx` DAQ string
+  channels.
+- The **boiler release** select is **optimistic** (shows the last command issued
+  from Home Assistant, restored across restarts), because the device only exposes
+  a boolean `Kesselfreigabe` channel that can't distinguish Auto from On.
+
 Writes are always sent live and validated against the device's `ack`/`err` reply.
 
 ## ⚠️ Safety

@@ -68,3 +68,25 @@ HEATING_PROGRAM_OPTIONS: Final[dict[str, int]] = {
     "heat": 2,
     "setback": 3,
 }
+
+# Names of the DAQ string channels that report the CURRENT program state, so the
+# control selects can reflect the real device state instead of being optimistic.
+# Note: some firmwares misspell "Programm" as "Progamm" for the heating circuits.
+CONTROL_PROGRAM_STATE_NAMES: Final = ("Programm",)
+HEATING_PROGRAM_STATE_NAMES: Final = ("Progamm HK{n}", "Programm HK{n}")
+
+# Reverse maps: device status string (upper-cased) -> select option key.
+CONTROL_PROGRAM_STATE_MAP: Final[dict[str, str]] = {
+    "AUS": "off",
+    "NORMAL": "normal",
+    "WARMWASSER": "hot_water",
+    "HEIZEN": "heat",
+    "ABSENKEN": "setback",
+    "HANDBETRIEB": "manual",
+}
+HEATING_PROGRAM_STATE_MAP: Final[dict[str, str]] = {
+    "AUS": "off",
+    "NORMAL": "normal",
+    "HEIZEN": "heat",
+    "ABSENKEN": "setback",
+}

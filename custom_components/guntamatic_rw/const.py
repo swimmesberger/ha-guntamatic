@@ -98,6 +98,16 @@ NUMERIC_UNITS: Final = ("°C", "%", "h", "d", "m3")
 # Channel names in the keyless daqdesc that are placeholders and must be skipped.
 RESERVED_CHANNEL_NAMES: Final = ("reserved", "")
 
+# DAQ channels that are only meaningful while the burner is alight. The lambda
+# probe must be hot to produce a valid signal: once the fire is out and the
+# induced-draft fan stops, the derived reading drifts upwards and clamps at a
+# plausible-looking value instead of dropping out, which silently poisons any
+# long-term statistic built on the channel.
+COMBUSTION_ONLY_CHANNEL_NAMES: Final = ("CO2 Gehalt",)
+
+# Channel reporting burner output in %, used to gate the channels above.
+BURNER_OUTPUT_CHANNEL_NAME: Final = "Leistung"
+
 
 @dataclass(frozen=True)
 class ParSensorDef:

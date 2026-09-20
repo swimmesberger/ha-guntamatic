@@ -21,7 +21,7 @@ from .api import (
     Parameter,
     infer_keyless_type,
 )
-from .const import DEFAULT_SCAN_INTERVAL, DOMAIN
+from .const import BURNER_OUTPUT_CHANNEL_NAME, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +64,32 @@ class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelDat
     def has_key(self) -> bool:
         """Whether an API key is configured (unlocks the full DAQ set + control)."""
         return self.client.has_key
+
+    def channel_value_by_name(self, name: str) -> Any:
+        """Return the latest value of the first channel with this exact name.
+
+        Channel ids differ between the keyed and keyless endpoints, so lookups
+        that must work in both modes have to go via the description name.
+        """
+        for channel in (self.data or {}).values():
+            if channel.description.name.strip() == name:
+                return channel.value
+        return None
+
+    @property
+    def is_burning(self) -> bool | None:
+        """Whether the burner is currently producing output.
+
+        Returns None when the output channel is absent or unparseable, so that
+        callers can tell "not burning" apart from "cannot tell".
+        """
+        raw = self.channel_value_by_name(BURNER_OUTPUT_CHANNEL_NAME)
+        if raw is None:
+            return None
+        try:
+            return float(str(raw).strip()) > 0
+        except (TypeError, ValueError):
+            return None
 
     async def _async_update_data(self) -> dict[int, ChannelData]:
         """Fetch DAQ data (+ par.cgi), (re)loading descriptions when needed."""

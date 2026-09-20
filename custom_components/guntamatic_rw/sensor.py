@@ -17,7 +17,12 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import PAR_SENSORS, RESERVED_CHANNEL_NAMES, ParSensorDef
+from .const import (
+    COMBUSTION_ONLY_CHANNEL_NAMES,
+    PAR_SENSORS,
+    RESERVED_CHANNEL_NAMES,
+    ParSensorDef,
+)
 from .coordinator import GuntamaticConfigEntry, GuntamaticDataUpdateCoordinator
 from .entity import GuntamaticEntity
 
@@ -72,6 +77,7 @@ class GuntamaticSensor(GuntamaticEntity, SensorEntity):
         desc = coordinator.data[channel_id].description
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{channel_id}"
         self._attr_name = desc.name
+        self._combustion_only = desc.name.strip() in COMBUSTION_ONLY_CHANNEL_NAMES
 
         if desc.type in ("float", "int"):
             if desc.unit and desc.unit in _UNIT_MAP:
@@ -91,8 +97,15 @@ class GuntamaticSensor(GuntamaticEntity, SensorEntity):
 
     @property
     def available(self) -> bool:
-        """Return True if the channel is present in the latest update."""
-        return super().available and self._channel_id in self.coordinator.data
+        """Return True if the channel is present and its value is meaningful."""
+        if not (super().available and self._channel_id in self.coordinator.data):
+            return False
+        # Lambda-derived channels only carry a valid reading while the burner is
+        # alight; gate on a positive "not burning" so an unknown state keeps the
+        # entity available rather than hiding it.
+        if self._combustion_only and self.coordinator.is_burning is False:
+            return False
+        return True
 
     @property
     def native_value(self) -> float | int | str | None:

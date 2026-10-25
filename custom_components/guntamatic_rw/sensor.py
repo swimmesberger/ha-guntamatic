@@ -18,10 +18,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from .const import (
+    ATTR_CODE,
     COMBUSTION_ONLY_CHANNEL_NAMES,
     PAR_SENSORS,
     RESERVED_CHANNEL_NAMES,
     ParSensorDef,
+    program_state_codes,
 )
 from .coordinator import GuntamaticConfigEntry, GuntamaticDataUpdateCoordinator
 from .entity import GuntamaticEntity
@@ -78,6 +80,7 @@ class GuntamaticSensor(GuntamaticEntity, SensorEntity):
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{channel_id}"
         self._attr_name = desc.name
         self._combustion_only = desc.name.strip() in COMBUSTION_ONLY_CHANNEL_NAMES
+        self._state_codes = program_state_codes(desc.name)
 
         if desc.type in ("float", "int"):
             if desc.unit and desc.unit in _UNIT_MAP:
@@ -124,6 +127,17 @@ class GuntamaticSensor(GuntamaticEntity, SensorEntity):
         text = str(value).strip()
         return text or None
 
+    @property
+    def extra_state_attributes(self) -> dict[str, int] | None:
+        """Return the device value of a program status channel as a number."""
+        if self._state_codes is None:
+            return None
+        value = self.native_value
+        if not isinstance(value, str):
+            return None
+        code = self._state_codes.get(value.upper())
+        return None if code is None else {ATTR_CODE: code}
+
 
 class GuntamaticParSensor(GuntamaticEntity, SensorEntity):
     """A diagnostic sensor sourced from a par.cgi parameter (keyless)."""
@@ -163,3 +177,14 @@ class GuntamaticParSensor(GuntamaticEntity, SensorEntity):
         if param is None:
             return None
         return param.display() if param.is_enum else param.numeric()
+
+    @property
+    def extra_state_attributes(self) -> dict[str, int] | None:
+        """Return an enum parameter's device value (option index) as a number."""
+        param = self.coordinator.parameters.get(self._par_id)
+        if param is None or not param.is_enum:
+            return None
+        try:
+            return {ATTR_CODE: int(param.current)}
+        except (TypeError, ValueError):
+            return None

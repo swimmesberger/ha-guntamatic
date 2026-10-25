@@ -58,6 +58,10 @@ Options (Settings → the integration → **Configure**):
 ## Entities
 
 - **Sensors** — one per numeric/text DAQ channel, with inferred units/device classes.
+- **Numeric `code` attribute** on enum-like entities: the `Programm` / `Progamm HKx` status
+  channels, the enum `par.cgi` diagnostic sensors (option index) and the control selects
+  (device value). Recorders that only store numbers, such as VictoriaMetrics behind the
+  InfluxDB integration, keep the state history through it.
 - **Binary sensors** — one per boolean DAQ channel. Without an API key the device sends booleans as `True`/`False` text; those channels are detected as boolean too.
 - **Selects** (writes):
   - *Boiler release* — Auto / Off / On

@@ -117,9 +117,15 @@ class GuntamaticDataUpdateCoordinator(DataUpdateCoordinator[dict[int, ChannelDat
                     )
 
             # Keyless descriptions carry no type; infer it once from unit/value.
+            # The keyed endpoint may call booleans "boolean" and send JSON true/false;
+            # normalise both to "bool" so they become binary sensors, not "True" text.
             for desc, value in zip(self.descriptions, values):
                 if desc.type == "":
                     desc.type = infer_keyless_type(value, desc.unit)
+                elif desc.type == "boolean" or (
+                    isinstance(value, bool) and desc.type not in ("float", "int")
+                ):
+                    desc.type = "bool"
 
             channels = {
                 desc.id: ChannelData(description=desc, value=value)

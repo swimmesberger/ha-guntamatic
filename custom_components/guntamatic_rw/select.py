@@ -16,6 +16,7 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
+    ATTR_CODE,
     BOILER_MODE_OPTIONS,
     CONF_BOILER_SYNONYM,
     CONF_HEATING_CIRCUITS,
@@ -132,6 +133,14 @@ class GuntamaticSelect(GuntamaticEntity, RestoreEntity, SelectEntity):
                     return option
         # Fall back to the last command issued (optimistic / restored).
         return self._attr_current_option
+
+    @property
+    def extra_state_attributes(self) -> dict[str, int] | None:
+        """Return the device value of the current option as a number."""
+        option = self.current_option
+        if option is None:
+            return None
+        return {ATTR_CODE: self._options_map[option]}
 
     async def async_select_option(self, option: str) -> None:
         """Write the chosen option to the device."""

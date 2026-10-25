@@ -92,6 +92,40 @@ HEATING_PROGRAM_STATE_MAP: Final[dict[str, str]] = {
     "ABSENKEN": "setback",
 }
 
+# The heating-circuit DAQ channels report the live circuit state, which besides the
+# four programs includes states the device has no numeric value for. Programs keep
+# their device value (HEATING_PROGRAM_OPTIONS); the other states are numbered from 10.
+# Never renumber an entry: recorded history depends on these values.
+HEATING_CIRCUIT_STATE_CODES: Final[dict[str, int]] = {
+    **{state: HEATING_PROGRAM_OPTIONS[option] for state, option in HEATING_PROGRAM_STATE_MAP.items()},
+    "ABS": HEATING_PROGRAM_OPTIONS["setback"],  # abbreviated "ABSENKEN"
+    "BOILER": 10,
+    "HAND": 11,
+    "ÜBERTEMP.": 12,
+    "ABTAUEN": 13,
+    "RESTWÄRME": 14,
+}
+
+# State attribute carrying the device's numeric value of an enum-like entity, so
+# numbers-only recorders (e.g. VictoriaMetrics via the InfluxDB integration) can
+# store it alongside the text state.
+ATTR_CODE: Final = "code"
+
+
+def program_state_codes(channel_name: str) -> dict[str, int] | None:
+    """Return status-string -> device value for a DAQ program channel, else None."""
+    name = channel_name.strip()
+    if name in CONTROL_PROGRAM_STATE_NAMES:
+        return {
+            state: CONTROL_PROGRAM_OPTIONS[option]
+            for state, option in CONTROL_PROGRAM_STATE_MAP.items()
+        }
+    for n in range(MAX_HEATING_CIRCUITS):
+        if name in (pattern.format(n=n) for pattern in HEATING_PROGRAM_STATE_NAMES):
+            return HEATING_CIRCUIT_STATE_CODES
+    return None
+
+
 # DAQ units that always denote a numeric channel (used for keyless type inference).
 NUMERIC_UNITS: Final = ("°C", "%", "h", "d", "m3")
 

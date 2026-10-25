@@ -89,10 +89,24 @@ class Parameter:
             return None
 
 
+_BOOL_TEXT: dict[str, bool] = {"true": True, "false": False}
+
+
+def parse_bool(value: Any) -> bool | None:
+    """Parse a boolean channel value: JSON bool/number (keyed) or "True"/"False" text (keyless)."""
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value != 0
+    return _BOOL_TEXT.get(str(value).strip().casefold())
+
+
 def infer_keyless_type(value: Any, unit: str | None) -> str:
-    """Infer a channel type for the keyless path (no bool: cannot be distinguished)."""
+    """Infer a channel type for the keyless path, where daqdata.cgi is plain text."""
     if unit in NUMERIC_UNITS:
         return "float"
+    if str(value).strip().casefold() in _BOOL_TEXT:
+        return "bool"
     try:
         float(str(value).strip())
     except (TypeError, ValueError):

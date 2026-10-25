@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .api import parse_bool
+from .const import DOMAIN
 from .coordinator import GuntamaticConfigEntry, GuntamaticDataUpdateCoordinator
 from .entity import GuntamaticEntity
 
@@ -25,6 +28,12 @@ async def async_setup_entry(
         for channel_id, channel in coordinator.data.items()
         if channel.description.type == "bool"
     ]
+    # Keyless boolean channels used to be inferred as text sensors. They share the
+    # unique id with the binary sensor that replaces them, so drop the stale sensor.
+    registry = er.async_get(hass)
+    for entity in entities:
+        if stale := registry.async_get_entity_id("sensor", DOMAIN, entity.unique_id):
+            registry.async_remove(stale)
     async_add_entities(entities)
 
 
@@ -52,4 +61,4 @@ class GuntamaticBinarySensor(GuntamaticEntity, BinarySensorEntity):
         channel = self.coordinator.data.get(self._channel_id)
         if channel is None or channel.value is None:
             return None
-        return bool(channel.value)
+        return parse_bool(channel.value)

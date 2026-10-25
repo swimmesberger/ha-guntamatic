@@ -58,7 +58,7 @@ Options (Settings → the integration → **Configure**):
 ## Entities
 
 - **Sensors** — one per numeric/text DAQ channel, with inferred units/device classes.
-- **Binary sensors** — one per boolean DAQ channel.
+- **Binary sensors** — one per boolean DAQ channel. Without an API key the device sends booleans as `True`/`False` text; those channels are detected as boolean too.
 - **Selects** (writes):
   - *Boiler release* — Auto / Off / On
   - *Control program* — Off / Normal / Hot water / Heating / Setback / Manual
